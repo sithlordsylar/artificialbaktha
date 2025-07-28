@@ -41,6 +41,8 @@ const App = () => {
   // State to show detailed loading progress for "Proper Research" mode
   const [researchProgress, setResearchProgress] = useState('');
 
+  // Utility function to introduce a delay
+  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
   // Effect to load all metadata (file list, keywords, references, alt names) from JSON files
   useEffect(() => {
@@ -49,7 +51,8 @@ const App = () => {
       setError('');
       try {
         // --- Fetch file_list.json ---
-        const fileListResponse = await fetch('/context/file_list.json');
+        // Prepend import.meta.env.BASE_URL to correctly resolve path on GitHub Pages
+        const fileListResponse = await fetch(`${import.meta.env.BASE_URL}context/file_list.json`); // MODIFIED
         if (!fileListResponse.ok) {
           throw new Error(`Failed to load file_list.json: ${fileListResponse.statusText}. Make sure it exists in public/context/.`);
         }
@@ -57,7 +60,8 @@ const App = () => {
         setAvailableContextFiles(fileList);
 
         // --- Fetch document_keywords.json ---
-        const keywordsResponse = await fetch('/context/document_keywords.json');
+        // Prepend import.meta.env.BASE_URL
+        const keywordsResponse = await fetch(`${import.meta.env.BASE_URL}context/document_keywords.json`); // MODIFIED
         if (!keywordsResponse.ok) {
           throw new Error(`Failed to load document_keywords.json: ${keywordsResponse.statusText}. Make sure it exists in public/context/.`);
         }
@@ -65,7 +69,8 @@ const App = () => {
         setDocumentKeywords(keywords);
 
         // --- Fetch references_and_relations.json ---
-        const referencesResponse = await fetch('/context/references_and_relations.json');
+        // Prepend import.meta.env.BASE_URL
+        const referencesResponse = await fetch(`${import.meta.env.BASE_URL}context/references_and_relations.json`); // MODIFIED
         if (!referencesResponse.ok) {
           throw new Error(`Failed to load references_and_relations.json: ${referencesResponse.statusText}. Make sure it exists in public/context/.`);
         }
@@ -73,7 +78,8 @@ const App = () => {
         setReferencesAndRelations(references);
 
         // --- Fetch alt_names_mapping.json ---
-        const altNamesResponse = await fetch('/context/alt_names_mapping.json');
+        // Prepend import.meta.env.BASE_URL
+        const altNamesResponse = await fetch(`${import.meta.env.BASE_URL}context/alt_names_mapping.json`); // MODIFIED
         if (!altNamesResponse.ok) {
           throw new Error(`Failed to load alt_names_mapping.json: ${altNamesResponse.statusText}. Make sure it exists in public/context/.`);
         }
@@ -109,7 +115,8 @@ const App = () => {
       setError('');
 
       try {
-        const filePath = `/context/${selectedContextFile}`;
+        // Prepend import.meta.env.BASE_URL
+        const filePath = `${import.meta.env.BASE_URL}context/${selectedContextFile}`; // MODIFIED
         const response = await fetch(filePath);
 
         if (!response.ok) {
@@ -205,7 +212,8 @@ const App = () => {
           setIsContextLoading(true);
           setError('');
           try {
-            const filePath = `/context/${suggestedFile}`;
+            // Prepend import.meta.env.BASE_URL
+            const filePath = `${import.meta.env.BASE_URL}context/${suggestedFile}`; // MODIFIED
             const response = await fetch(filePath);
             if (!response.ok) {
               throw new Error(`Failed to load suggested context file: ${response.statusText}`);
@@ -263,6 +271,7 @@ const App = () => {
         const relevantFiles = [];
 
         // First, determine which files are relevant based on keywords
+        // This helps avoid sending empty documents to the AI and saves tokens/time
         for (const fileName of availableContextFiles) {
             const normalizedQuestionWords = normalizedQuestionForAI.split(' ').filter(word => word.length > 0);
             const fileKeywords = documentKeywords[fileName]
@@ -287,7 +296,8 @@ const App = () => {
           const fileName = relevantFiles[i];
           setResearchProgress(`Analyzing document ${i + 1} of ${relevantFiles.length}: ${fileName.replace('.txt', '')}...`);
           
-          const filePath = `/context/${fileName}`;
+          // Prepend import.meta.env.BASE_URL
+          const filePath = `${import.meta.env.BASE_URL}context/${fileName}`; // MODIFIED
           const response = await fetch(filePath);
           if (!response.ok) {
             console.warn(`Could not load document ${fileName} for research: ${response.statusText}`);
@@ -310,14 +320,16 @@ const App = () => {
               'X-Title': 'SamaLore Contextual Q&A App - SubQuery'
             },
             body: JSON.stringify({
-              model: 'mistralai/mistral-7b-instruct', // Use the same model for sub-queries
+              model: 'mistralai/mistral-small-3.2-24b-instruct:free', // Reverted to Mistral Small
               messages: [{ role: 'user', content: subQueryPrompt }],
               // No response_format: { type: "json_object" } for sub-queries, expect plain text
             })
           });
 
           if (!subQueryResult.ok) {
-            console.error(`Sub-query API error for ${fileName}:`, await subQueryResult.json());
+            const errorData = await subQueryResult.json();
+            console.error(`Sub-query API error for ${fileName}: ${subQueryResult.status} - ${errorData.message || 'Unknown error'}`);
+            // If it's a 429, we might want to retry or increase delay. For now, just warn and continue.
             continue; // Continue to next file even if one fails
           }
           const subResultJson = await subQueryResult.json();
@@ -326,6 +338,9 @@ const App = () => {
           if (summary && summary.toLowerCase() !== 'no relevant information found in this document.') {
             aggregatedSummaries.push(`--- Summary from ${fileName.replace('.txt', '')} ---\n${summary}\n`);
           }
+
+          // Introduce a delay to avoid hitting rate limits
+          await sleep(1500); // 1.5 second delay between sub-queries. Adjust if needed.
         }
 
         if (aggregatedSummaries.length === 0) {
@@ -378,7 +393,7 @@ const App = () => {
             'X-Title': 'SamaLore Contextual Q&A App - Final Synthesis'
           },
           body: JSON.stringify({
-            model: 'mistralai/mistral-7b-instruct', // Use the same model for final synthesis
+            model: 'mistralai/mistral-small-3.2-24b-instruct:free', // Reverted to Mistral Small
             messages: [{ role: 'user', content: finalPrompt }],
             response_format: { type: "json_object" },
             schema: {
@@ -402,6 +417,7 @@ const App = () => {
         if (finalResult.choices && finalResult.choices.length > 0 && finalResult.choices[0].message && finalResult.choices[0].message.content) {
           const jsonResponse = finalResult.choices[0].message.content;
           const parsedJson = JSON.parse(jsonResponse);
+
           setMatchedAnswers(parsedJson.matched_answers || []); // Will be empty in this mode
           setExactAnswer(parsedJson.exact_answer_text || 'No comprehensive answer found.');
           setTldrSummary(parsedJson.tldr_summary || 'No summary available.');
@@ -425,7 +441,8 @@ const App = () => {
           if (!currentContextContent || selectedContextFile !== finalSelectedFile) {
             setIsContextLoading(true);
             try {
-              const response = await fetch(`/context/${finalSelectedFile}`);
+              // Prepend import.meta.env.BASE_URL
+              const response = await fetch(`/context/${finalSelectedFile}`); // THIS LINE IS MISSING BASE_URL
               if (!response.ok) throw new Error(`Failed to load suggested context file: ${response.statusText}`);
               contextToUse = await response.text();
               setCurrentContextContent(contextToUse);
@@ -483,7 +500,7 @@ const App = () => {
         {
           "matched_answers": ["snippet 1", "snippet 2", ...],
           "exact_answer_text": "The full relevant section from the primary context, including its defining marker, copied verbatim.",
-          "tldr_summary": "A concise summary of the answer AND a direct answer to the question, potentially enriched by additional reference context if relevant."
+          "tldr_summary": "A concise summary and direct answer to the question, potentially enriched by additional reference context."
         }
         `;
 
@@ -496,7 +513,7 @@ const App = () => {
             'X-Title': 'SamaLore Contextual Q&A App'
           },
           body: JSON.stringify({
-            model: 'mistralai/mistral-7b-instruct',
+            model: 'mistralai/mistral-small-3.2-24b-instruct:free', // Reverted to Mistral Small
             messages: [{ role: 'user', content: prompt }],
             response_format: { type: "json_object" },
             schema: {
