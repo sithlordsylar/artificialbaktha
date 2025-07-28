@@ -1,26 +1,45 @@
 Virtual Baktha (SamaLore Q&A App)
+
 Project Description
+
 Virtual Baktha is an interactive web application designed to help users explore the intricate and expansive Lore of Lord Vikramnantha Sama-Ji and its associated universe. As the name suggests ("Baktha" means devotee), this app acts as a virtual sage or devotee, providing knowledge and insights into the SamaLore. It offers a dynamic interface to query specific documents or conduct deep, multi-document research, leveraging a Large Language Model (LLM) to deliver accurate and comprehensive answers.
+
 Whether you're curious about the origins of Dimension 69, the Divine Aspects (Kunjus), the history of the Annunaki, or the prophecies of Ste'vi 'Ra, this app aims to be your ultimate guide to the SamaLore universe.
-Features
+
+
+Features:
  * Contextual Q&A: Ask questions about the SamaLore, and the app will retrieve relevant information.
+
  * Document Selection: Choose a specific lore document (e.g., The Bible of Sama-Ji, kunjus.txt) to narrow down your query.
+
  * "Unsure" Mode: If you're unsure which document is most relevant, the app intelligently suggests the best context based on your question's keywords.
+
  * "Proper Research" Mode: For complex queries spanning multiple texts (e.g., "Tell me about Sama-Ji" or "Who are the Kunjus?"), enable this mode to trigger a multi-step AI analysis across relevant documents, synthesizing a comprehensive answer.
+
  * Exact Answer Extraction: Get the precise, verbatim section from a document that directly answers your question (in standard mode).
+
  * TLDR Summaries: Receive concise, AI-generated summaries and direct answers to your queries.
+
  * OpenRouter API Integration: Utilizes OpenRouter.ai for flexible and cost-effective access to various LLMs.
+
  * API Key Management: Securely upload your OpenRouter API key via a .env file (stored in browser session storage).
+
  * Clear Instance: A button to easily reset the application state, including the API key from session storage.
-Lore Data
+
+
+Lore Data:
 The core lore for this application is derived from "The Bible of Sama-Ji" and its expanded texts. This includes:
  * The Bible of Sama-Ji.pdf: The foundational text detailing the origins of Dimension 69, Sama-Ji, the Kunjumonz, and the Divine Aspects (Kunjus).
  * Individual .txt files in public/context/: Each "Book" or significant section of the lore is broken down into separate .txt files (e.g., bible_of_samaji_intro.txt, book1.txt, book2.txt, kunjus.txt, etc.) for efficient AI processing and context management.
  * document_keywords.json: Maps keywords to specific lore documents, enabling the "Unsure" mode to suggest the most relevant context.
  * references_and_relations.json: Provides additional external context and relationships between entities in the lore, which the AI can draw upon for richer answers.
  * alt_names_mapping.json: Contains alternative names or spellings for characters and concepts, helping the AI understand variations in user queries.
+
+
 Beyond SamaLore: Reusing this App for Any Knowledge Domain
+
 This "Virtual Baktha" application is built with a modular design, making it highly adaptable for use with any text-based knowledge domain. You can easily repurpose this app to create a custom Q&A system for your own content!
+
 Here's how you can adapt it:
  * Replace the Lore Documents (.txt files):
    * Swap out the existing SamaLore .txt files in the public/context/ folder with your own content. This could be:
@@ -29,17 +48,21 @@ Here's how you can adapt it:
      * Technical documentation: Organize your documentation into separate .txt files for different topics or modules.
      * Personal notes or research papers: Turn your unstructured text into a searchable knowledge base.
    * Ensure your new .txt files are structured with clear headings or markers (e.g., [Chapter 1], ## Section Title, Verse 5:) if you want the "Exact Answer from Document" feature to work effectively.
+
  * Update the Metadata (.json files):
    * public/context/file_list.json: Update this array to list the filenames of your new .txt documents.
    * public/context/document_keywords.json: Create keyword mappings for your new documents. This is crucial for the "Unsure" mode to correctly suggest relevant documents based on user questions. Think about important terms, names, or concepts in each of your new .txt files.
    * public/context/references_and_relations.json (Optional but Recommended): If your new domain has external facts, common knowledge, or relationships between entities that the AI should be aware of but aren't explicitly in your .txt files, update this file.
    * public/context/alt_names_mapping.json (Optional): If your new content uses alternative terms, abbreviations, or spellings for key concepts, update this file to help the AI understand variations in user queries.
+
  * Customize the User Interface Text (.jsx files):
    * You can easily change the display text within the src/App.jsx (or other React components if you expand the project) to match your new domain. For example:
      * Change the main title from "SamaLore Contextual Q&A App" to "My Novel Q&A Assistant" or "Tech Doc Navigator."
      * Adjust labels for input fields, buttons, or result sections to better suit your content.
    * Remember that any changes to .jsx files require a local npm run build followed by npm run deploy to update the live GitHub Pages site.
+
 By following these steps, you can transform this "Virtual Baktha" into a powerful, custom Q&A tool for virtually any collection of text-based information.
+
 Getting Started
 To run this project locally, you'll need Node.js and npm installed.
  * Clone the Repository:
