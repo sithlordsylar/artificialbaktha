@@ -52,7 +52,7 @@ const App = () => {
       try {
         // --- Fetch file_list.json ---
         // Prepend import.meta.env.BASE_URL to correctly resolve path on GitHub Pages
-        const fileListResponse = await fetch(`${import.meta.env.BASE_URL}context/file_list.json`); // MODIFIED
+        const fileListResponse = await fetch(`${import.meta.env.BASE_URL}context/file_list.json`);
         if (!fileListResponse.ok) {
           throw new Error(`Failed to load file_list.json: ${fileListResponse.statusText}. Make sure it exists in public/context/.`);
         }
@@ -61,7 +61,7 @@ const App = () => {
 
         // --- Fetch document_keywords.json ---
         // Prepend import.meta.env.BASE_URL
-        const keywordsResponse = await fetch(`${import.meta.env.BASE_URL}context/document_keywords.json`); // MODIFIED
+        const keywordsResponse = await fetch(`${import.meta.env.BASE_URL}context/document_keywords.json`);
         if (!keywordsResponse.ok) {
           throw new Error(`Failed to load document_keywords.json: ${keywordsResponse.statusText}. Make sure it exists in public/context/.`);
         }
@@ -70,7 +70,7 @@ const App = () => {
 
         // --- Fetch references_and_relations.json ---
         // Prepend import.meta.env.BASE_URL
-        const referencesResponse = await fetch(`${import.meta.env.BASE_URL}context/references_and_relations.json`); // MODIFIED
+        const referencesResponse = await fetch(`${import.meta.env.BASE_URL}context/references_and_relations.json`);
         if (!referencesResponse.ok) {
           throw new Error(`Failed to load references_and_relations.json: ${referencesResponse.statusText}. Make sure it exists in public/context/.`);
         }
@@ -79,7 +79,7 @@ const App = () => {
 
         // --- Fetch alt_names_mapping.json ---
         // Prepend import.meta.env.BASE_URL
-        const altNamesResponse = await fetch(`${import.meta.env.BASE_URL}context/alt_names_mapping.json`); // MODIFIED
+        const altNamesResponse = await fetch(`${import.meta.env.BASE_URL}context/alt_names_mapping.json`);
         if (!altNamesResponse.ok) {
           throw new Error(`Failed to load alt_names_mapping.json: ${altNamesResponse.statusText}. Make sure it exists in public/context/.`);
         }
@@ -116,7 +116,7 @@ const App = () => {
 
       try {
         // Prepend import.meta.env.BASE_URL
-        const filePath = `${import.meta.env.BASE_URL}context/${selectedContextFile}`; // MODIFIED
+        const filePath = `${import.meta.env.BASE_URL}context/${selectedContextFile}`;
         const response = await fetch(filePath);
 
         if (!response.ok) {
@@ -177,19 +177,22 @@ const App = () => {
     console.log(`--- Suggesting Context File for: "${questionText}" (Normalized: "${normalizedQuestion}") ---`);
     console.log("Question words for matching:", questionWords); // Now this should show actual words
 
-    for (const fileName in documentKeywords) {
-      // Flatten and normalize the document's keywords into individual comparable words
+    // NOTE: documentKeywords is indexed by filename, so we need to iterate through availableContextFiles
+    // which now contains objects { filename, displayName }
+    for (const fileInfo of availableContextFiles) { // Iterate over the objects
+      const fileName = fileInfo.filename; // Get the actual filename
       const fileKeywords = documentKeywords[fileName]
-        .flatMap(kw => kw.toLowerCase().replace(/[^\w\s']/g, '').split(' ')) // Split multi-word keywords and clean
-        .filter(word => word.length > 0); // Filter out empty strings
+        ? documentKeywords[fileName].flatMap(kw => kw.toLowerCase().replace(/[^\w\s']/g, '').split(' ')) // Split multi-word keywords and clean
+        .filter(word => word.length > 0) // Filter out empty strings
+        : [];
 
       let currentScore = 0;
       questionWords.forEach(qWord => {
-        if (fileKeywords.includes(qWord)) { // Now this comparison will work correctly
+        if (fileKeywords.includes(qWord)) {
           currentScore++;
         }
       });
-      console.log(`File: ${fileName}, Keywords (processed): ${fileKeywords.join(', ')}, Score: ${currentScore}`); // Update log to show processed keywords
+      console.log(`File: ${fileName}, Keywords (processed): ${fileKeywords.join(', ')}, Score: ${currentScore}`);
 
       if (currentScore > maxScore) {
         maxScore = currentScore;
@@ -199,7 +202,7 @@ const App = () => {
     console.log(`Best match found: ${bestMatchFile} with score: ${maxScore}`);
     // Only suggest if a score is greater than 0, meaning at least one keyword matched
     return maxScore > 0 ? bestMatchFile : '';
-  }, [documentKeywords, normalizeQuestion]); // Recalculate if documentKeywords or normalizeQuestion changes
+  }, [documentKeywords, normalizeQuestion, availableContextFiles]); // Added availableContextFiles to dependencies
 
   // Effect to automatically suggest context file when the question changes, if 'unsure' is selected
   useEffect(() => {
@@ -213,7 +216,7 @@ const App = () => {
           setError('');
           try {
             // Prepend import.meta.env.BASE_URL
-            const filePath = `${import.meta.env.BASE_URL}context/${suggestedFile}`; // MODIFIED
+            const filePath = `${import.meta.env.BASE_URL}context/${suggestedFile}`;
             const response = await fetch(filePath);
             if (!response.ok) {
               throw new Error(`Failed to load suggested context file: ${response.statusText}`);
@@ -272,7 +275,9 @@ const App = () => {
 
         // First, determine which files are relevant based on keywords
         // This helps avoid sending empty documents to the AI and saves tokens/time
-        for (const fileName of availableContextFiles) {
+        // Iterate over the objects in availableContextFiles
+        for (const fileInfo of availableContextFiles) { // MODIFIED
+            const fileName = fileInfo.filename; // MODIFIED: Get the actual filename
             const normalizedQuestionWords = normalizedQuestionForAI.split(' ').filter(word => word.length > 0);
             const fileKeywords = documentKeywords[fileName]
                 ? documentKeywords[fileName].flatMap(kw => kw.toLowerCase().replace(/[^\w\s']/g, '').split(' ')).filter(word => word.length > 0)
@@ -286,18 +291,20 @@ const App = () => {
         }
 
         if (relevantFiles.length === 0) {
-            setError('No relevant documents found for deep research. Please refine your question or keywords.');
-            setIsLoading(false);
-            return;
+          setError('No relevant documents found for deep research. Please refine your question or keywords.');
+          setIsLoading(false);
+          return;
         }
 
         // Loop through relevant files, summarize each, and aggregate
         for (let i = 0; i < relevantFiles.length; i++) {
           const fileName = relevantFiles[i];
-          setResearchProgress(`Analyzing document ${i + 1} of ${relevantFiles.length}: ${fileName.replace('.txt', '')}...`);
+          // Find the displayName for the progress message
+          const fileDisplayName = availableContextFiles.find(f => f.filename === fileName)?.displayName || fileName.replace('.txt', ''); // MODIFIED
+          setResearchProgress(`Analyzing document ${i + 1} of ${relevantFiles.length}: ${fileDisplayName}...`); // MODIFIED
           
           // Prepend import.meta.env.BASE_URL
-          const filePath = `${import.meta.env.BASE_URL}context/${fileName}`; // MODIFIED
+          const filePath = `${import.meta.env.BASE_URL}context/${fileName}`;
           const response = await fetch(filePath);
           if (!response.ok) {
             console.warn(`Could not load document ${fileName} for research: ${response.statusText}`);
@@ -336,7 +343,7 @@ const App = () => {
           const summary = subResultJson.choices[0]?.message?.content || 'No summary generated.';
           
           if (summary && summary.toLowerCase() !== 'no relevant information found in this document.') {
-            aggregatedSummaries.push(`--- Summary from ${fileName.replace('.txt', '')} ---\n${summary}\n`);
+            aggregatedSummaries.push(`--- Summary from ${fileDisplayName} ---\n${summary}\n`); // MODIFIED
           }
 
           // Introduce a delay to avoid hitting rate limits
@@ -442,7 +449,7 @@ const App = () => {
             setIsContextLoading(true);
             try {
               // Prepend import.meta.env.BASE_URL
-              const response = await fetch(`/context/${finalSelectedFile}`); // THIS LINE IS MISSING BASE_URL
+              const response = await fetch(`${import.meta.env.BASE_URL}context/${finalSelectedFile}`); // MODIFIED
               if (!response.ok) throw new Error(`Failed to load suggested context file: ${response.statusText}`);
               contextToUse = await response.text();
               setCurrentContextContent(contextToUse);
@@ -684,15 +691,12 @@ const App = () => {
                 disabled={isContextLoading || isMetaDataLoading || isProperResearchMode} // Disable if in proper research mode
               >
                 <option value="unsure">Unsure (AI will suggest best document)</option>
-                {availableContextFiles.length > 0 ? (
-                  availableContextFiles.map((fileName) => (
-                    <option key={fileName} value={fileName}>
-                      {fileName.replace('.txt', '').replace(/_/g, ' ')}
+                {/* MODIFIED: Use fileInfo.filename for value and fileInfo.displayName for display text */}
+                {availableContextFiles.map((fileInfo, index) => (
+                    <option key={index} value={fileInfo.filename}>
+                        {fileInfo.displayName}
                     </option>
-                  ))
-                ) : (
-                  <option value="">No context files found. Check public/context/file_list.json</option>
-                )}
+                ))}
               </select>
             )}
             {isContextLoading && selectedContextFile === 'unsure' && (

@@ -1,14 +1,54 @@
 [
-  "bible_of_samaji_intro.txt",
-  "book1.txt",
-  "book2.txt",
-  "book3.txt",
-  "book4.txt",
-  "book5.txt",
-  "book6.txt",
-  "prophecies.txt",
-  "poneglyph.txt",
-  "kunjus.txt",
-  "glyph_intro.txt",
-  "table_of_bruda.txt"
+  {
+    "filename": "bible_of_samaji_intro.txt",
+    "displayName": "Bible of Sama-Ji: Introduction"
+  },
+  {
+    "filename": "book1.txt",
+    "displayName": "Book 1: The Book of Owh Yeah!"
+  },
+  {
+    "filename": "book2.txt",
+    "displayName": "Book 2: The Lost Tablet of Annunaki I"
+  },
+  {
+    "filename": "book3.txt",
+    "displayName": "Book 3: The Lost Tablet of Annunaki II"
+  },
+  {
+    "filename": "book4.txt",
+    "displayName": "Book4: Poneglyph of Atem and Bakura"
+  },
+  {
+    "filename": "book5.txt",
+    "displayName": "Book 5: The Life of Yeezus"
+  },
+  {
+    "filename": "book6.txt",
+    "displayName": "Book 6: Enter the Bruda"
+  },
+  {
+    "filename": "book7.txt",
+    "displayName": "Book 7: The Book of Yhwach"
+  },
+  {
+    "filename": "book8.txt",
+    "displayName": "Book 8: The Book of Hitla"
+  },
+  {
+    "filename": "prophecies.txt",
+    "displayName": "The Prophecies of The Accursed One"
+  },
+  {
+    "filename": "poneglyph.txt",
+    "displayName": "The Oracle’s Divine Muse"
+  },
+  {
+    "filename": "kunjus.txt",
+    "displayName": "Know thy Kunjus!"
+  },
+  {
+    "filename": "glyph_intro.txt",
+    "displayName": "An Intro to the Divine Lexicon"
+  }
 ]
