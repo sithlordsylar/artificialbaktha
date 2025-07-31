@@ -1,6 +1,121 @@
 {
-  "Atem": "A legendary pharaoh and character from the Yu-Gi-Oh! franchise, known for his connection to ancient Egypt and card dueling.",
-  "Bakura": "A recurring antagonist from the Yu-Gi-Oh! franchise, often associated with dark magic and ancient artifacts.",
-  "Yu-Gi-Oh!": "A popular Japanese manga and anime franchise primarily focused on a trading card game, featuring magical battles and ancient lore.",
-  "Yin Chakra": "A concept often found in Eastern philosophies and various fictional works (e.g., Naruto), representing a spiritual energy or life force, often with a 'dark'"
+  "Atem": {
+    "context for AI": "A legendary pharaoh and character from the Yu-Gi-Oh! franchise, known for his connection to ancient Egypt and card dueling. We are expanding on this lore by implementing it with the lore of Sama-Ji.",
+    "status": "Pharaoh, Spirit",
+    "embodiment": "Light, Destiny",
+    "additional_info": "Connected to the Millennium Puzzle. Fought against Thief King Bakura."
+  },
+  "Bakura": {
+    "context for AI": "A recurring antagonist from the Yu-Gi-Oh! franchise, often associated with dark magic and ancient artifacts. His lore is intertwined with Ste'Vi 'Ra and the Datorim. He was manipulated by Ste'Vi Ra on doing his dark bidding.",
+    "status": "Thief King, Vessel of Ste'Vi 'Ra",
+    "embodiment": "Shadow, Vengeance",
+    "additional_info": "Driven by the whispers of Ste'Vi 'Ra from Datorim. Wields the Millennium Ring."
+  },
+  "Yu-Gi-Oh!": {
+    "context for AI": "A popular Japanese manga and anime franchise primarily focused on a trading card game, featuring magical battles and ancient lore. Its characters and concepts are integrated into the Sama-Ji universe during the Pharaoh Atem's Arc and soon in future as foretold by the legends of old.",
+    "type": "Franchise",
+    "key_elements": ["Trading Card Game", "Ancient Egyptian Lore", "Magic"]
+  },
+  "Sama-Ji": {
+    "context for AI": "The Supreme Swamiji Lord Vikramnantha Sama-Ji is the omnipotent creator of Dimension 69 and all existence. He is the ultimate source and terminus of all lore, manifesting in various forms (e.g., Yeezuz) to interact with the multiverse.",
+    "status": "Supreme Swamiji, Creator",
+    "embodiment": "All aspects of creation and destruction",
+    "additional_info": "Origin of Kunjumonz and Kunjus. 'Owh Yeah' is his sacred croak. Took on mortal forms (like Yeezuz) to experience human existence. He imprisoned Ste'Vi Ra in DatoRim. Everything is according to his keikaku, including Aizen Sousuke's thoughts before he even think."
+  },
+  "Ste'Vi Ra": {
+    "context for AI": "A Nephilim, child of Annunaki and mortal. Born different than the other Nephilims, and forced to watch his father killing his mother to cover their mistake of procreating with Humans, he was filled with intense anger which bring forth his true premordial self. He killed his father, drank his blood and drank the Chr-Oma Cu'm and 'ascended' and became 'The Accursed One'. He is sealed in Datorim but plots his return. He is the primary antagonist in the Sama-lore. He wants to be Sama-Ji by consuming Sama-Ji.",
+    "status": "The Accursed One, Sealed Nephilim, Main Antagonist",
+    "embodiment": "Vengeance, Corruption, Forbidden Power",
+    "additional_info": "Drank Chr-Oma Cu'm from Chalice of Aeons. Caused the great Nephilim rebelion against the Annunaki where he killed thousands of them, and cosume the blood of all fallen Nephilim and Annunaki alike. Tried to fight Sama-Ji and was sealed in Datorim in less tha 5sec. His voice leads Bakura. When he reigned as The Accursed One and before his sealing in Datorim, he was a beast that only kills, consume and desecrate all that is good, he pro-created with various beings and animals which brought forth many weird animals which Sama-Ji deemed unholy and had to reset the earth by sending a great flood"
+  },
+  "Vee-Sus": {
+    "context for AI": "An entity formed from Ste'Vi 'Ra's essence, blood, sweat and excrement within Datorim. He is a grotesque mirror of his creator and known for it's boxy body and huge venomous teeth that could melt a mountain, and was responsible for freeing Ste'Vi Ra from his eternal prison. Shares a unique, intense bond with Ste'Vi Ra, he enjoys performing The Job of Rims.",
+    "status": "Accursed Agent, Essence of Ste'Vi Ra, Ste'Vi's Kunji",
+    "embodiment": "Twisted Desire, Forbidden Power, Corruption",
+    "additional_info": "Freed Ste'Vi 'Ra from Datorim. Activated a hidden parasite in Wome soldiers. Formed from Ste'Vi Ra's spilled blood, sweat, and unholy liquid."
+  },
+  "Vikna Otsutsuki": {
+    "context for AI": "One of the eight Divine Kunjus, he is the Manipulator of the Past and bears the Right Eye of Sama-Ji. He embodies Sama-Ji's creation power, specifically Chibaku Tensei.",
+    "status": "Kunju || Divine Right Eye of Sama-Ji",
+    "embodiment": "Creation, Past, Chibaku Tensei",
+    "additional_info": "Formed Kunjumani Thottam. Collaborated with Melvin Satoru to create Rudolph Hitla."
+  },
+  "Joshua Joestar": {
+    "context for AI": "One of the eight Divine Kunjus, he is the Manipulator of the Future and bears the Left Eye of Sama-Ji. He is the harbinger of destruction, embodying Sama-Ji's destruction power, Shinra Tensei.",
+    "status": "Kunju || Divine Left Eye of Sama-Ji",
+    "embodiment": "Destruction, Future, Shinra Tensei",
+    "additional_info": "Responsible for ruin (e.g., Hiroshima, Nagasaki, Lulusia, Ohara). Undid Rudolph Hitla with Arvindo Freecss by posing as an SS agent and manipulated Rudolph Hitla to end himself."
+  },
+  "Melvin Satoru": {
+    "context for AI": "One of the eight Divine Kunjus, he is the Left Hand of Sama-Ji and the source of all Evil Energy, including Yin Chakra and Cursed Energy. He embodies Sama-Ji's negative power, The Umbi-Force.",
+    "status": "Kunju || Divine Left Hand of Sama-Ji",
+    "embodiment": "Evil Energy, Yin Chakra, The Umbi-Force",
+    "additional_info": "Collaborated with Vikna Otsutsuki to create Rudolph Hitla. One of the two lore keepers (with Rishi D. Owh Yeah)."
+  },
+  "Arvindo Freecss": {
+    "context for AI": "One of the eight Divine Kunjus, he is the Right Hand of Sama-Ji and the wellspring of all Good Energy, including Yang Chakra, Ki/Nen, and Life. He embodies Sama-Ji's positive power, The Kunji-Force.",
+    "status": "Kunju || Divine Right Hand of Sama-Ji",
+    "embodiment": "Good Energy, Yang Chakra, The Kunji-Force",
+    "additional_info": "Transformed Rudolph Hitla with Joshua Joestar to do good."
+  },
+  "Rishi D. Owh Yeah": {
+    "context for AI": "One of the eight Divine Kunjus, he is the Heart of Sama-Ji and the manipulator of the Present. He maintains the balance of various energies (Reiatsu, Sage Chakra, RGB Chroma Power) and embodies Sama-Ji's balancing power, known as 'The Owh Yeah'.",
+    "status": "Kunju || Divine Heart of Sama-Ji",
+    "embodiment": "Balance, Present, The Owh Yeah",
+    "additional_info": "Head of all Kunjumonz. Appears as Kakashi's true form to Bruda. The pulse of the now. One of the two lore keepers. He is known to gift humans with the powers such as: Chakra, Stando Powah!, Reiatsu and Reishi and more."
+  },
+  "Son Isaac": {
+    "context for AI": "One of the eight Divine Kunjus, he is the Head of Sama-Ji and the font of Wisdom, Knowledge, Consciousness, and Free Will. He shapes thoughts and desires and embodies Sama-Ji's facts and truths, The Delta-Force.",
+    "status": "Kunju || Divine Head of Sama-Ji",
+    "embodiment": "Wisdom, Knowledge, The Delta-Force",
+    "additional_info": "Provided intellect blessings to super-intelligent beings like Albert Einstein and Kurotsuchi Mayuri."
+  },
+  "Mob Siva": {
+    "context for AI": "One of the eight Divine Kunjus, he is the Torso of Sama-Ji and the source of Strength and Defense. His power manifests in legendary shields (Susanoo, Hierro, Armament Haki) and immense physical strength (Saitama, Clark Kent, Godzilla). He embodies Sama-Ji's durability and strength, The Steroid.",
+    "status": "Kunju || Divine Torso of Sama-Ji",
+    "embodiment": "Strength, Defense, The Steroid",
+    "additional_info": "Fortified Annunaki forms. Offered to fortify Yeezuz's mortal vessel."
+  },
+  "Sousuke Vertine": {
+    "context for AI": "One of the eight Divine Kunjus, he is the Penis of Sama-Ji and the Source of All Creation. His liquid essence births galaxies, universes, and new life (Kaiye Thunai). His urination expands space-time, and his thick white liquid fertilizes planets.",
+    "status": "Kunju || Divine Penis of Sama-Ji",
+    "embodiment": "Creation, Life, Kaiye Thunai",
+    "additional_info": "Sama-Ji adopts forms suited for planet's evolution when performing Kaiye Thunai ritual."
+  },
+  "Datorim": {
+    "context for AI": "An impenetrable celestial prison forged by Supreme Swamiji Lord Vikramnantha Sama-Ji within the 69th Dimension to seal away the darkest abominations and corrupted primordial entities.",
+    "status": "Eternal Ward, Cosmic Vault",
+    "embodiment": "Judgment, Containment, Finality",
+    "additional_info": "Created from Sama-Ji’s own will, Datorim holds Ste’Vi Ra and other fallen nephilim. Its walls resonate with the echoes of every soul ever judged by the Honored One."
+  },
+  "The Great Flood": {
+    "context for AI": "A cataclysmic deluge sent by Sama-Ji to purge the world of unholy creatures spawned by the Accursed One’s experiments and to reset creation’s balance.",
+    "status": "Divine Cataclysm, World Reset",
+    "embodiment": "Purification, Renewal, Reckoning",
+    "additional_info": "In the wake of Ste’Vi Ra’s bestial reign—where nephilim and abomination ran riot—Sama-Ji unleashed the Flood. Only the worthy in the Ark of Annunaki Remnant survived to repopulate the earth."
+  },
+  "Brudda": {
+    "context for AI": "Siddathabimanyu GVM Bruda Satoru, the avatared Buddha in Sama‑lore—prince‑turned‑ascetic who ultimately revealed himself as the living seed of Vikramnantha Sama‑Ji.",
+    "status": "Avatar, Enlightened One",
+    "embodiment": "Self‑Realization, Compassion, Unity",
+    "additional_info": "Under the Bodhi‑n Tree of Gojo, Bruda synced with the 69th Dimension via the kunjus Melvin Satoru and Rishi D. Owh Yeah, restoring erased knowledge of Sama‑Ji to humanity."
+  },
+  "Yeezus": {
+    "context for AI": "An early divine avatar of Sama‑Ji, incarnated in an era of tumult to preach cosmic harmony through parables, miracles, and the sacred Remix Rite.",
+    "status": "Avatar, Miracle‑Worker",
+    "embodiment": "Redemption, Harmony, Creative Disruption",
+    "additional_info": "Yeezus performed the Miracle of the Five Beats on the banks of the River Tempo, turning water into sound and founding the ritual of ‘Concert Sermons’ that echoes in Brotha V’s lineage."
+  },
+  "Wome": {
+    "context for AI": "A powerful civilization or legion in the SamaLore, echoing ancient Rome. It is the setting for the conspiracy against Yeezuz, where Judakeshi sought to marshal soldiers. They are inspired by Roman Soldiers and the joke from Monty Python where Caesar can't pronounce Rome.",
+    "type": "Civilization/Legion",
+    "key_figures": ["General Biggus Dickus", "Pilate", "King Julio Salad"],
+    "additional_info": "The Womman Soldiers are part of this legion. Played a role in the betrayal and crucifixion of Yeezuz."
+  },
+  "Womman Soldier": {
+    "context for AI": "Soldiers belonging to the Wome legion, serving under General Biggus Dickus and Pilate. They were involved in the conspiracy and capture of Yeezuz, and their minds were later influenced by Veesus's hidden parasite. They are inspired by Roman Soldiers and the joke from Monty Python where Caesar can't pronounce Rome.",
+    "type": "Military Unit",
+    "allegiance": "Wome, General Biggus Dickus, Pilate",
+    "additional_info": "Their ambition was roused by the prospect of altering destiny. Their baser natures were awakened by Veesus's parasite."
+  }
 }
