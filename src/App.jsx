@@ -327,7 +327,7 @@ const App = () => {
               'X-Title': 'SamaLore Contextual Q&A App - SubQuery'
             },
             body: JSON.stringify({
-              model: 'nousresearch/hermes-3-llama-3.1-405b:free', // Reverted to Mistral Small
+              model: 'nousresearch/deephermes-3-llama-3-8b-preview', // Reverted to Mistral Small
               messages: [{ role: 'user', content: subQueryPrompt }],
               // No response_format: { type: "json_object" } for sub-queries, expect plain text
             })
@@ -347,7 +347,7 @@ const App = () => {
           }
 
           // Introduce a delay to avoid hitting rate limits
-          await sleep(1500); // 1.5 second delay between sub-queries. Adjust if needed.
+          await sleep(3000); // 3 second delay between sub-queries. Adjust if needed.
         }
 
         if (aggregatedSummaries.length === 0) {
@@ -400,7 +400,7 @@ const App = () => {
             'X-Title': 'SamaLore Contextual Q&A App - Final Synthesis'
           },
           body: JSON.stringify({
-            model: 'nousresearch/hermes-3-llama-3.1-405b:free', // Reverted to Mistral Small
+            model: 'nousresearch/deephermes-3-llama-3-8b-preview', // Reverted to Mistral Small
             messages: [{ role: 'user', content: finalPrompt }],
             response_format: { type: "json_object" },
             schema: {
@@ -520,7 +520,7 @@ const App = () => {
             'X-Title': 'SamaLore Contextual Q&A App'
           },
           body: JSON.stringify({
-            model: 'nousresearch/hermes-3-llama-3.1-405b:free', // Reverted to Mistral Small
+            model: 'nousresearch/deephermes-3-llama-3-8b-preview', // Reverted to Mistral Small
             messages: [{ role: 'user', content: prompt }],
             response_format: { type: "json_object" },
             schema: {
