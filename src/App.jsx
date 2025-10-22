@@ -238,6 +238,19 @@ const App = () => {
     }
   }, [question, documentKeywords, selectedContextFile, suggestContextFile, altNamesMapping, isProperResearchMode]); // Dependencies for this effect
 
+const fetchWithRetry = async (url, options, retries = 5, delay = 5000) => {
+  for (let i = 0; i < retries; i++) {
+    const res = await fetch(url, options);
+    if (res.status === 429) {
+      console.warn(`⚠️ 429 rate limit hit. Waiting ${delay/1000}s before retry ${i+1}/${retries}...`);
+      await sleep(delay);
+      continue;
+    }
+    return res;
+  }
+  throw new Error(`Too many 429s. Retry limit reached.`);
+};
+
 
   // Function to handle the "Ask Question" button click
   const handleAskQuestion = async () => {
@@ -318,7 +331,7 @@ const App = () => {
           Main Question: "${normalizedQuestionForAI}"
           Summarize relevant information from this document:`;
 
-          const subQueryResult = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          const subQueryResult = await fetchWithRetry('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -327,7 +340,7 @@ const App = () => {
               'X-Title': 'SamaLore Contextual Q&A App - SubQuery'
             },
             body: JSON.stringify({
-              model: 'nousresearch/deephermes-3-llama-3-8b-preview', // Reverted to Mistral Small
+              model: 'mistralai/mistral-small-3.2-24b-instruct', // Reverted to Mistral Small
               messages: [{ role: 'user', content: subQueryPrompt }],
               // No response_format: { type: "json_object" } for sub-queries, expect plain text
             })
@@ -391,7 +404,7 @@ const App = () => {
         }
         `;
 
-        const finalResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        const finalResponse = await fetchWithRetry('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -400,7 +413,7 @@ const App = () => {
             'X-Title': 'SamaLore Contextual Q&A App - Final Synthesis'
           },
           body: JSON.stringify({
-            model: 'nousresearch/deephermes-3-llama-3-8b-preview', // Reverted to Mistral Small
+            model: 'mistralai/mistral-small-3.2-24b-instruct', // Reverted to Mistral Small
             messages: [{ role: 'user', content: finalPrompt }],
             response_format: { type: "json_object" },
             schema: {
@@ -511,7 +524,7 @@ const App = () => {
         }
         `;
 
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        const response = await fetchWithRetry('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -520,7 +533,7 @@ const App = () => {
             'X-Title': 'SamaLore Contextual Q&A App'
           },
           body: JSON.stringify({
-            model: 'nousresearch/deephermes-3-llama-3-8b-preview', // Reverted to Mistral Small
+            model: 'mistralai/mistral-small-3.2-24b-instruct', // Reverted to Mistral Small
             messages: [{ role: 'user', content: prompt }],
             response_format: { type: "json_object" },
             schema: {
