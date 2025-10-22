@@ -327,7 +327,7 @@ const App = () => {
               'X-Title': 'SamaLore Contextual Q&A App - SubQuery'
             },
             body: JSON.stringify({
-              model: 'google/gemini-2.0-flash-exp:free', // Reverted to Mistral Small
+              model: 'mistralai/mistral-small-3.1-24b-instruct', // Reverted to Mistral Small
 			  temperature: 0.9,
 			  top_p: 0.95,
 			  messages: [{ role: 'user', content: subQueryPrompt }],
@@ -402,7 +402,7 @@ const App = () => {
             'X-Title': 'SamaLore Contextual Q&A App - Final Synthesis'
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.0-flash-exp:free', // Reverted to Mistral Small
+            model: 'mistralai/mistral-small-3.1-24b-instruct', // Reverted to Mistral Small
             temperature: 0.9,
 			top_p: 0.95,
 			messages: [{ role: 'user', content: finalPrompt }],
@@ -536,7 +536,7 @@ Return your response as a **JSON object** with the structure below, and no extra
             'X-Title': 'SamaLore Contextual Q&A App'
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.0-flash-exp:free', // Reverted to Mistral Small
+            model: 'mistralai/mistral-small-3.1-24b-instruct', // Reverted to Mistral Small
             temperature: 0.9,
 			top_p: 0.95,
 			messages: [{ role: 'user', content: prompt }],
