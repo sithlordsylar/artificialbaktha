@@ -40,6 +40,8 @@ const App = () => {
   const [isProperResearchMode, setIsProperResearchMode] = useState(false);
   // State to show detailed loading progress for "Proper Research" mode
   const [researchProgress, setResearchProgress] = useState('');
+  // State to hold the file suggested by the AI when in 'unsure' mode
+  const [suggestedFile, setSuggestedFile] = useState('');
 
   // Utility function to introduce a delay
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -140,17 +142,25 @@ const App = () => {
   // Function to normalize the question by replacing alt names with canonical names
   // and removing punctuation. This is used for keyword matching and AI prompt.
   const normalizeQuestion = useCallback((questionText) => {
-    // Convert to lowercase, replace common punctuation with a space, then trim and reduce multiple spaces
-    let normalizedText = questionText.toLowerCase()
-                                    .replace(/[^\w\s']/g, '') // Keep apostrophes for names like Ste'Vi
-                                    .replace(/\s+/g, ' ') // Replace multiple spaces with single space
-                                    .trim(); // Trim leading/trailing whitespace
-    
-    // Replace alt names with canonical ones
+    let normalizedText = questionText.toLowerCase();
+
+    // Replace alt names with canonical names. This should be done before stripping punctuation
+    // to match alt names that might contain it (e.g., "Ste'Vi").
     for (const altName in altNamesMapping) {
-      const regex = new RegExp(`\\b${altName}\\b`, 'g');
-      normalizedText = normalizedText.replace(regex, altNamesMapping[altName].toLowerCase());
+      // Use a case-insensitive regex based on the original altName key.
+      const regex = new RegExp(`\\b${altName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'gi');
+      normalizedText = normalizedText.replace(regex, altNamesMapping[altName]);
     }
+
+    // Now, perform aggressive normalization for keyword matching on the text with canonical names.
+    // This handles possessives and removes all punctuation.
+    normalizedText = normalizedText
+      .toLowerCase() // Re-lowercase after replacements
+      .replace(/'s\b/g, '') // Remove possessive 's (e.g., "samaji's" -> "samaji")
+      .replace(/[^\w\s]/g, '') // Remove all remaining non-alphanumeric characters
+      .replace(/\s+/g, ' ') // Collapse whitespace
+      .trim();
+
     return normalizedText;
   }, [altNamesMapping]); // Recalculate if altNamesMapping changes
 
@@ -182,8 +192,12 @@ const App = () => {
     for (const fileInfo of availableContextFiles) { // Iterate over the objects
       const fileName = fileInfo.filename; // Get the actual filename
       const fileKeywords = documentKeywords[fileName]
-        ? documentKeywords[fileName].flatMap(kw => kw.toLowerCase().replace(/[^\w\s']/g, '').split(' ')) // Split multi-word keywords and clean
-        .filter(word => word.length > 0) // Filter out empty strings
+        ? documentKeywords[fileName].flatMap(kw =>
+            kw.toLowerCase()
+              .replace(/'s\b/g, '') // Remove possessive 's
+              .replace(/[^\w\s]/g, '') // Remove punctuation
+              .split(' ') // Split multi-word keywords
+          ).filter(word => word.length > 0) // Filter out empty strings
         : [];
 
       let currentScore = 0;
@@ -204,39 +218,59 @@ const App = () => {
     return maxScore > 0 ? bestMatchFile : '';
   }, [documentKeywords, normalizeQuestion, availableContextFiles]); // Added availableContextFiles to dependencies
 
-  // Effect to automatically suggest context file when the question changes, if 'unsure' is selected
+  // This effect clears the suggestion if we are no longer in 'unsure' mode or if in proper research mode
   useEffect(() => {
-    // Only suggest if question is long enough, and all metadata is loaded, and not in proper research mode
-    if (selectedContextFile === 'unsure' && question.length > 5 && Object.keys(documentKeywords).length > 0 && Object.keys(altNamesMapping).length > 0 && !isProperResearchMode) {
-      const suggestedFile = suggestContextFile(question);
-      if (suggestedFile) {
-        // If a suggestion is found, load its content immediately for the 'unsure' mode
-        const loadSuggestedFileContent = async () => {
-          setIsContextLoading(true);
-          setError('');
-          try {
-            // Prepend import.meta.env.BASE_URL
-            const filePath = `${import.meta.env.BASE_URL}context/${suggestedFile}`;
-            const response = await fetch(filePath);
-            if (!response.ok) {
-              throw new Error(`Failed to load suggested context file: ${response.statusText}`);
-            }
-            const text = await response.text();
-            setCurrentContextContent(text);
-          } catch (err) {
-            setError(`Error loading suggested context file: ${err.message}.`);
-            console.error('Suggested context file loading error:', err);
-            setCurrentContextContent('');
-          } finally {
-            setIsContextLoading(false);
-          }
-        };
-        loadSuggestedFileContent();
-      } else {
-        setCurrentContextContent(''); // Clear content if no suggestion is found for 'unsure'
-      }
+    if (selectedContextFile !== 'unsure' || isProperResearchMode) {
+      setSuggestedFile('');
     }
-  }, [question, documentKeywords, selectedContextFile, suggestContextFile, altNamesMapping, isProperResearchMode]); // Dependencies for this effect
+  }, [selectedContextFile, isProperResearchMode]);
+
+  // Effect to automatically SUGGEST a file when the question changes and we are in 'unsure' mode.
+  // This effect does NOT load the content, it only sets the `suggestedFile` state.
+  useEffect(() => {
+    // Clear suggestion immediately if conditions aren't met while in 'unsure' mode
+    if (selectedContextFile !== 'unsure' || question.length <= 5 || isProperResearchMode) {
+      setSuggestedFile('');
+      return;
+    }
+
+    // Only proceed to suggest if metadata is loaded
+    if (Object.keys(documentKeywords).length > 0 && Object.keys(altNamesMapping).length > 0) {
+      const fileSuggestion = suggestContextFile(question);
+      setSuggestedFile(fileSuggestion); // Set the suggestion (or '' if none found)
+    }
+  }, [question, selectedContextFile, documentKeywords, altNamesMapping, isProperResearchMode]); // Re-run when question or mode changes
+
+  // Effect to load the content of the SUGGESTED file, but only when in 'unsure' mode.
+  useEffect(() => {
+    const loadSuggestedFileContent = async () => {
+      // Only run if we are in 'unsure' mode and there IS a suggested file.
+      if (selectedContextFile !== 'unsure' || !suggestedFile) {
+        setCurrentContextContent(''); // Clear content if no suggestion
+        return;
+      }
+
+      setIsContextLoading(true);
+      setError('');
+      try {
+        const filePath = `${import.meta.env.BASE_URL}context/${suggestedFile}`;
+        const response = await fetch(filePath);
+        if (!response.ok) {
+          throw new Error(`Failed to load suggested context file: ${response.statusText}`);
+        }
+        const text = await response.text();
+        setCurrentContextContent(text);
+      } catch (err) {
+        setError(`Error loading suggested context file: ${err.message}.`);
+        console.error('Suggested context file loading error:', err);
+        setCurrentContextContent('');
+      } finally {
+        setIsContextLoading(false);
+      }
+    };
+
+    loadSuggestedFileContent();
+  }, [suggestedFile, selectedContextFile]); // This effect depends only on the suggestion and mode.
 
 const fetchWithRetry = async (url, options, retries = 5, delay = 5000) => {
   for (let i = 0; i < retries; i++) {
@@ -293,7 +327,12 @@ const fetchWithRetry = async (url, options, retries = 5, delay = 5000) => {
             const fileName = fileInfo.filename; // MODIFIED: Get the actual filename
             const normalizedQuestionWords = normalizedQuestionForAI.split(' ').filter(word => word.length > 0);
             const fileKeywords = documentKeywords[fileName]
-                ? documentKeywords[fileName].flatMap(kw => kw.toLowerCase().replace(/[^\w\s']/g, '').split(' ')).filter(word => word.length > 0)
+                ? documentKeywords[fileName].flatMap(kw =>
+                    kw.toLowerCase()
+                      .replace(/'s\b/g, '') // Remove possessive 's
+                      .replace(/[^\w\s]/g, '') // Remove punctuation
+                      .split(' ')
+                  ).filter(word => word.length > 0)
                 : [];
             
             const score = normalizedQuestionWords.filter(qWord => fileKeywords.includes(qWord)).length;
@@ -450,33 +489,19 @@ const fetchWithRetry = async (url, options, retries = 5, delay = 5000) => {
         // --- Standard Mode (Single Document Lookup) ---
         let contextToUse = currentContextContent;
         let finalSelectedFile = selectedContextFile;
-
+        // --- Refactored Logic for 'unsure' mode ---
         if (selectedContextFile === 'unsure') {
-          finalSelectedFile = suggestContextFile(question);
+          // The suggestedFile state is now the single source of truth for the suggested document.
+          // The useEffect hooks have already loaded its content into currentContextContent.
+          finalSelectedFile = suggestedFile;
+
           if (!finalSelectedFile) {
             setError('Could not determine a relevant document from your question. Please select a specific document or refine your question.');
             setIsLoading(false);
             return;
           }
-          if (!currentContextContent || selectedContextFile !== finalSelectedFile) {
-            setIsContextLoading(true);
-            try {
-              // Prepend import.meta.env.BASE_URL
-              const response = await fetch(`${import.meta.env.BASE_URL}context/${finalSelectedFile}`); // MODIFIED
-              if (!response.ok) throw new Error(`Failed to load suggested context file: ${response.statusText}`);
-              contextToUse = await response.text();
-              setCurrentContextContent(contextToUse);
-            } catch (err) {
-              setError(`Error loading suggested context: ${err.message}`);
-              setIsLoading(false);
-              setIsContextLoading(false);
-              return;
-            } finally {
-              setIsContextLoading(false);
-            }
-          } else {
-            contextToUse = currentContextContent;
-          }
+          // The content is already pre-loaded by the useEffect hook that watches `suggestedFile`.
+          // No need to re-fetch here. `contextToUse` is already set to `currentContextContent`.
         }
 
         if (!contextToUse.trim()) {
@@ -590,9 +615,10 @@ const fetchWithRetry = async (url, options, retries = 5, delay = 5000) => {
       const reader = new FileReader();
       reader.onload = (event) => {
         const content = event.target.result;
-        const match = content.match(/^OPENROUTER_API_KEY=(.*)$/m);
+        // Improved regex to find the key, ignore comments, and trim whitespace.
+        const match = content.match(/^\s*OPENROUTER_API_KEY\s*=\s*['"]?([^'"#\s]+)['"]?/m);
         if (match && match[1]) {
-          const key = match[1].trim();
+          const key = match[1]; // No need to trim, regex handles it.
           setOpenRouterApiKey(key);
           sessionStorage.setItem('openRouterApiKey', key);
           setError('');
@@ -704,9 +730,9 @@ const fetchWithRetry = async (url, options, retries = 5, delay = 5000) => {
                 disabled={isContextLoading || isMetaDataLoading || isProperResearchMode} // Disable if in proper research mode
               >
                 <option value="unsure">Unsure (AI will suggest best document)</option>
-                {/* MODIFIED: Use fileInfo.filename for value and fileInfo.displayName for display text */}
-                {availableContextFiles.map((fileInfo, index) => (
-                    <option key={index} value={fileInfo.filename}>
+                {/* MODIFIED: Use fileInfo.filename for a stable key and value */}
+                {availableContextFiles.map((fileInfo) => (
+                    <option key={fileInfo.filename} value={fileInfo.filename}>
                         {fileInfo.displayName}
                     </option>
                 ))}
@@ -762,7 +788,7 @@ const fetchWithRetry = async (url, options, retries = 5, delay = 5000) => {
               {matchedAnswers.length > 0 ? (
                 <ul className="list-disc list-inside space-y-2">
                   {matchedAnswers.map((answer, index) => (
-                    <li key={index}>
+                    <li key={`${answer}-${index}`}>
                       <button
                         onClick={() => handleSelectAnswer(answer)}
                         className="text-blue-600 hover:underline text-left"
