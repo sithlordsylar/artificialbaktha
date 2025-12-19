@@ -42,13 +42,77 @@ const App = () => {
   const [researchProgress, setResearchProgress] = useState('');
   // State to hold the file suggested by the AI when in 'unsure' mode
   const [suggestedFile, setSuggestedFile] = useState('');
+  // State for displaying OpenRouter credit balance
+  const [creditBalance, setCreditBalance] = useState(null);
+  // State to indicate if credit balance is being loaded
+  const [isBalanceLoading, setIsBalanceLoading] = useState(false);
+  // State for model selection
+  const [availableModels, setAvailableModels] = useState([]);
+  const [selectedModel, setSelectedModel] = useState('mistralai/mistral-small-3.2-24b-instruct');
+  const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
+  const [modelSearchTerm, setModelSearchTerm] = useState('');
+  const [showFreeModelsOnly, setShowFreeModelsOnly] = useState(false);
 
   // Utility function to introduce a delay
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+  // Function to fetch and update the credit balance from OpenRouter
+  const fetchCreditBalance = useCallback(async () => {
+    if (!openRouterApiKey) {
+      setCreditBalance(null);
+      return;
+    }
+    setIsBalanceLoading(true);
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/credits', {
+        headers: {
+          'Authorization': `Bearer ${openRouterApiKey}`,
+        },
+      });
+      if (!response.ok) {
+        // Handle cases where the key is invalid or has insufficient permissions
+        if (response.status === 401 || response.status === 403) {
+          setCreditBalance({ error: 'Invalid or unauthorized API Key for credits.' });
+        } else {
+          throw new Error(`Failed to fetch credits: ${response.statusText}`);
+        }
+      } else {
+        const data = await response.json();
+        const remaining = data.data.total_credits - data.data.total_usage;
+        setCreditBalance({ remaining: remaining.toFixed(4) });
+      }
+    } catch (err) {
+      console.error('Credit balance fetch error:', err);
+      setCreditBalance({ error: 'Failed to fetch balance.' });
+    } finally {
+      setIsBalanceLoading(false);
+    }
+  }, [openRouterApiKey]); // Dependency on the API key
+
+  // Effect to fetch credit balance when the component mounts or the API key changes
+  useEffect(() => {
+    fetchCreditBalance();
+  }, [fetchCreditBalance]);
+
   // Effect to load all metadata (file list, keywords, references, alt names) from JSON files
   useEffect(() => {
+    // Fetch the list of available models from OpenRouter
+    const fetchModels = async () => {
+      try {
+        const response = await fetch('https://openrouter.ai/api/v1/models');
+        if (!response.ok) {
+          throw new Error('Failed to fetch models from OpenRouter.');
+        }
+        const data = await response.json();
+        setAvailableModels(data.data);
+      } catch (err) {
+        console.error('Error fetching models:', err);
+        // Handle the error, maybe show a message to the user
+      }
+    };
+
     const loadMetaData = async () => {
+      fetchModels(); // Fire off the model fetching
       setIsMetaDataLoading(true);
       setError('');
       try {
@@ -379,7 +443,7 @@ const fetchWithRetry = async (url, options, retries = 5, delay = 5000) => {
               'X-Title': 'SamaLore Contextual Q&A App - SubQuery'
             },
             body: JSON.stringify({
-              model: 'mistralai/mistral-small-3.2-24b-instruct', // Reverted to Mistral Small
+              model: selectedModel,
               messages: [{ role: 'user', content: subQueryPrompt }],
               // No response_format: { type: "json_object" } for sub-queries, expect plain text
             })
@@ -452,7 +516,7 @@ const fetchWithRetry = async (url, options, retries = 5, delay = 5000) => {
             'X-Title': 'SamaLore Contextual Q&A App - Final Synthesis'
           },
           body: JSON.stringify({
-            model: 'mistralai/mistral-small-3.2-24b-instruct', // Reverted to Mistral Small
+            model: selectedModel,
             messages: [{ role: 'user', content: finalPrompt }],
             response_format: { type: "json_object" },
             schema: {
@@ -558,7 +622,7 @@ const fetchWithRetry = async (url, options, retries = 5, delay = 5000) => {
             'X-Title': 'SamaLore Contextual Q&A App'
           },
           body: JSON.stringify({
-            model: 'mistralai/mistral-small-3.2-24b-instruct', // Reverted to Mistral Small
+            model: selectedModel,
             messages: [{ role: 'user', content: prompt }],
             response_format: { type: "json_object" },
             schema: {
@@ -651,8 +715,74 @@ const fetchWithRetry = async (url, options, retries = 5, delay = 5000) => {
     alert('Instance cleared! API Key removed from session storage.'); // Using alert for simplicity
   };
 
+  const filteredModels = availableModels.filter(model => {
+    const matchesSearch = model.name.toLowerCase().includes(modelSearchTerm.toLowerCase()) || model.id.toLowerCase().includes(modelSearchTerm.toLowerCase());
+    const matchesFilter = !showFreeModelsOnly || (model.pricing.prompt === "0" && model.pricing.completion === "0");
+    return matchesSearch && matchesFilter;
+  });
+
   return (
     <div className="min-h-screen bg-gray-100 p-4 font-sans flex flex-col items-center">
+        {isModelSelectorOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-2xl max-h-[80vh] flex flex-col">
+                    <h2 className="text-2xl font-bold mb-4">Select a Model</h2>
+                    {/* Search and Filter Controls */}
+                    <div className="flex gap-4 mb-4">
+                        <input
+                            type="text"
+                            placeholder="Search models..."
+                            value={modelSearchTerm}
+                            onChange={(e) => setModelSearchTerm(e.target.value)}
+                            className="flex-grow p-2 border rounded-md"
+                        />
+                        <label className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={showFreeModelsOnly}
+                                onChange={(e) => setShowFreeModelsOnly(e.target.checked)}
+                                className="h-5 w-5"
+                            />
+                            <span>Show Free Models Only</span>
+                        </label>
+                    </div>
+                    {/* Models List */}
+                    <div className="overflow-y-auto border rounded-md p-2 flex-grow">
+                        {filteredModels.length > 0 ? (
+                            filteredModels.map(model => (
+                                <div
+                                    key={model.id}
+                                    onClick={() => {
+                                        setSelectedModel(model.id);
+                                        setIsModelSelectorOpen(false);
+                                    }}
+                                    className={`p-3 rounded-md cursor-pointer hover:bg-gray-100 ${selectedModel === model.id ? 'bg-blue-100 border-l-4 border-blue-500' : ''}`}
+                                >
+                                    <p className="font-semibold text-lg">{model.name}</p>
+                                    <p className="font-mono text-sm text-gray-600">{model.id}</p>
+                                    <p className="text-sm mt-1">{model.description}</p>
+                                    <div className="text-xs mt-2 text-gray-500">
+                                        <span>Context: {model.context_length.toLocaleString()}</span>
+                                        <span className="mx-2">|</span>
+                                        <span>Prompt: ${model.pricing.prompt}/token</span>
+                                        <span className="mx-2">|</span>
+                                        <span>Completion: ${model.pricing.completion}/token</span>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-center text-gray-500 py-4">No models match your criteria.</p>
+                        )}
+                    </div>
+                    <button
+                        onClick={() => setIsModelSelectorOpen(false)}
+                        className="mt-4 px-4 py-2 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 self-end"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        )}
       <div className="w-full max-w-4xl bg-white rounded-lg shadow-xl p-6 space-y-6">
         {/* Application Title */}
         <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">SamaLore Contextual Q&A App</h1>
@@ -696,6 +826,39 @@ const fetchWithRetry = async (url, options, retries = 5, delay = 5000) => {
               </p>
             </div>
           )}
+        </div>
+
+        {/* Credit Balance Display */}
+        {openRouterApiKey && (
+            <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
+                <h2 className="text-lg font-medium text-gray-800 mb-2">Credit Balance</h2>
+                {isBalanceLoading ? (
+                    <p className="text-gray-500">Loading balance...</p>
+                ) : creditBalance ? (
+                    creditBalance.error ? (
+                        <p className="text-red-600 font-semibold">{creditBalance.error}</p>
+                    ) : (
+                        <p className="text-2xl font-bold text-green-600">${creditBalance.remaining}</p>
+                    )
+                ) : (
+                    <p className="text-gray-500">Enter a valid API key to see your balance.</p>
+                )}
+            </div>
+        )}
+
+        {/* Model Selector Button */}
+        <div className="flex justify-between items-center bg-gray-50 p-3 rounded-md border">
+            <div>
+                <span className="font-medium text-gray-700">Selected Model:</span>
+                <span className="ml-2 font-mono text-blue-600 bg-blue-50 p-1 rounded">{selectedModel}</span>
+            </div>
+            <button
+                onClick={() => setIsModelSelectorOpen(true)}
+                className="px-4 py-2 bg-purple-600 text-white font-semibold rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                disabled={!availableModels.length}
+            >
+                {availableModels.length ? 'Change Model' : 'Loading Models...'}
+            </button>
         </div>
 
         {/* Context Document Selector, Question Input, and Ask Button */}
